@@ -3,9 +3,10 @@ from __future__ import unicode_literals
 from django.shortcuts import render
 from rest_framework.views import APIView
 from task_app.serializers import TaskSerializer
-from task_app.models import Tasks
+from task_app.models import Tasks, UserProfile
 from rest_framework import status
 from rest_framework.response import Response
+from task_app.forms import *
 
 
 class TasksView(APIView):
@@ -24,6 +25,31 @@ class TasksView(APIView):
 
 
     def delete(self, request, id, format=None):
-        snippet = Tasks.getobject(id)
-        snippet.delete()
+        task = Tasks.getobject(id)
+        task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class LoginView(APIView):
+    def post(self, request):
+        form = UserProfileForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            cpassword = form.cleaned_data['confirm_password']
+            username = form.cleaned_data['user_name']
+            if password == cpassword:
+                UserProfile(user_name=username, email=email,
+                            password=password).save()
+
+            else:
+                pass
+
+    def get(self, request):
+        form = UserProfileForm()
+        return render(request, 'login.html', {'form': form})
+
+class LogoutView(APIView):
+    pass
+
+class SignupView(APIView):
+    pass
