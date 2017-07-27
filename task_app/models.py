@@ -3,13 +3,14 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
 
 class Tasks(models.Model):
 	TASK_STATUS = (
 			(1, 'Complete'),
 			(0, 'Incomplete')
 		)
-	user = models.ForeignKey('UserProfile', on_delete=models.PROTECT,
+	user = models.ForeignKey(User, on_delete=models.PROTECT,
 							 related_name='task_user')
 	name = models.TextField()
 	status = models.IntegerField(choices=TASK_STATUS, default=0)
@@ -21,16 +22,21 @@ class Tasks(models.Model):
 		db_table = 'tasks'
 
 	@classmethod
-	def getallobjs(cls):
-		return cls.objects.all()
+	def getallobjs(cls, user):
+		return cls.objects.filter(user=user)
 
 	@classmethod
-	def getobject(cls, id):
-		return get_object_or_404(cls, id=id)
+	def getobject(cls, id, user):
+		return get_object_or_404(cls, id=id, user=user)
+
+	@classmethod
+	def addtask(cls, name, deadline, user):
+		obj = cls(name=name, deadline=deadline, user=user).save()
+		return obj
 
 
 class Activity(models.Model):
-	user = models.ForeignKey('UserProfile', on_delete=models.PROTECT,
+	user = models.ForeignKey(User, on_delete=models.PROTECT,
 							 related_name='activity_user')
 	action = models.TextField()
 	insert_time = models.DateTimeField(auto_now=True)

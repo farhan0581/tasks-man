@@ -7,7 +7,35 @@ from task_app.models import Tasks, UserProfile
 from rest_framework import status
 from rest_framework.response import Response
 from task_app.forms import *
+from django.http import HttpResponse
+from django.contrib.auth.models import User
+from django.contrib.auth import login, logout, authenticate
 
+class TasksListView(APIView):
+    def post(self, request):
+        pass
+
+    def get(self, request):
+        queryset = Tasks.getallobjs(request.user)
+        serializer = TaskSerializer(queryset, many=True)
+        print serializer.data
+        return render(request, 'tasks_list.html', {'tasks': serializer.data})
+
+class TaskAddView(APIView):
+    def post(self, request):
+        form = TaskAddForm(request.POST)
+        print form
+        print form.errors
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            deadline = form.cleaned_data['deadline']
+            obj = Tasks.addtask(name, deadline, request.user)
+            return render(request, 'tasks_add.html', {'data': obj})
+        return render(request, 'tasks_add.html', {'form': form})
+
+    def get(self, request):
+        form = TaskAddForm
+        return render(request, 'tasks_add.html', {'form': form})
 
 class TasksView(APIView):
     def post(self, request):
@@ -19,37 +47,68 @@ class TasksView(APIView):
 
 
     def get(self, request):
-        queryset = Tasks.getallobjs()
+        queryset = Tasks.getallobjs(request.user)
         serializer = TaskSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
     def delete(self, request, id, format=None):
-        task = Tasks.getobject(id)
+        task = Tasks.getobject(id, request.user)
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class LoginView(APIView):
+    def post(self, request):
+        form = UserLoginForm(request.POST)
+        print form
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            print email, password
+            user = form.authenticate_using_email()
+            print user
+            if user is not None:
+                login(request, user)
+                return render(request, 'login.html', {'user': user})
+            else:
+                return HttpResponse('Invalid Credentials!!!')
+        else:
+            return HttpResponse('inva')
+
+
+    def get(self, request):
+        form = UserLoginForm()
+        return render(request, 'login.html', {'form': form,
+                                              'user': request.user})
+
+
+class LogoutView(APIView):
+    def get(self, request):
+        logout(request)
+        form = UserLoginForm()
+        return render(request, 'login.html', {'form': form,
+                                              'user': request.user})
+
+class SignupView(APIView):
     def post(self, request):
         form = UserProfileForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             cpassword = form.cleaned_data['confirm_password']
-            username = form.cleaned_data['user_name']
+            username = form.cleaned_data['username']
             if password == cpassword:
-                UserProfile(user_name=username, email=email,
-                            password=password).save()
-
+                x = User.objects.create_user(username, email, password)
+                print x
+                user = authenticate(username=username, password=password)
+                if user is not None:
+                    login(request, user)
+                    return render(request, 'signup.html', {'user': user})
             else:
-                pass
+                return HttpResponse('Error')
 
     def get(self, request):
         form = UserProfileForm()
-        return render(request, 'login.html', {'form': form})
-
-class LogoutView(APIView):
-    pass
-
-class SignupView(APIView):
-    pass
+        return render(request, 'signup.html', {'form': form,
+                                               'user': request.user})
