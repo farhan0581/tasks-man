@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from task_app.serializers import TaskSerializer
-from task_app.models import Tasks, UserProfile
+from task_app.models import Tasks, UserProfile, Activity
 from rest_framework import status
 from rest_framework.response import Response
 from task_app.forms import *
@@ -138,3 +138,14 @@ class SignupView(APIView):
         form = UserProfileForm()
         return render(request, 'signup.html', {'form': form,
                                                'user': request.user})
+
+
+class ActivityView(APIView):
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ActivityView, self).dispatch(*args, **kwargs)
+
+    def get(self, request):
+        qs = Activity.getobjs(request.user)
+        return render(request, 'activity.html', {'activity': qs})
+

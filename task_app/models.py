@@ -35,15 +35,47 @@ class Tasks(models.Model):
 	@classmethod
 	def addtask(cls, name, deadline, user):
 		obj = cls(name=name, deadline=deadline, user=user).save()
+		try:
+			Activity.addactivity(user=user,
+								 task_name=name,
+								 action='You added this task'
+								 )
+		except:
+			pass
 		return obj
 
 	@classmethod
 	def deletetask(cls, id, user):
-		cls.objects.filter(id=id, user=user).delete()
+		obj = cls.objects.filter(id=id, user=user)
+		name = obj[0].name
+		obj.delete()
+		try:
+			Activity.addactivity(user=user,
+								 task_name=name,
+								 action='You deleted this task'
+								 )
+		except Exception as e:
+			pass
 
 	@classmethod
 	def updatestatus(cls, id, status, user):
-		cls.objects.filter(id=id, user=user).update(status=status)
+		changed = False
+		status_verbose = {1: 'Complete', 0: 'Incomplete'}
+		obj = cls.objects.filter(id=id, user=user)
+		name = obj[0].name
+
+		old_status = obj[0].status
+		if int(status) != old_status:
+			obj.update(status=status)
+			changed = True
+		try:
+			if changed:
+				Activity.addactivity(user=user,
+								 	task_name=name,
+								 	action='You updated this task\'s status to ' + status_verbose.get(int(status), '')
+								 	)
+		except Exception as e:
+			pass
 
 class Activity(models.Model):
 	user = models.ForeignKey(User, on_delete=models.PROTECT,
@@ -54,6 +86,16 @@ class Activity(models.Model):
 
 	class Meta:
 		db_table = 'activity'
+
+	@classmethod
+	def addactivity(cls, **kwargs):
+		obj = cls(**kwargs).save()
+		return obj
+
+	@classmethod
+	def getobjs(cls, user):
+		qs = cls.objects.filter(user=user)
+		return qs
 
 
 class UserProfile(models.Model):

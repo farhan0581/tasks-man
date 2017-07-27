@@ -4,6 +4,27 @@
 	<title>Tasks</title>
 </head>
 <body>
+	<nav class="navbar navbar-inverse">
+	  <div class="container-fluid">
+	    <div class="navbar-header">
+	      <a class="navbar-brand" href="#">Task Man</a>
+	    </div>
+	    <ul class="nav navbar-nav">
+	      <li class="active"><a href="{% url 'task_list' %}">Tasks</a></li>
+	      <li><a href="{% url 'activity' %}">Your Activity</a></li>
+	      <li><a href="{% url 'add' %}">Add Task</a></li>
+	    </ul>
+	    <ul class="nav navbar-nav navbar-right">
+	      {% if not user.is_authenticated %}
+	      <li><a href="{% url 'signup' %}"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
+	      <li><a href="{% url 'login' %}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+	      {% else %}
+	      <li><a href=""><span class="glyphicon glyphicon-user"></span>&nbsp;<span>Hello {{ user }} !!</span></a></li>
+	      <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
+	      {% endif %}
+	    </ul>
+	  </div>
+	</nav>
 	<div class="container">
 		{% block content %}
 		{% endblock %}

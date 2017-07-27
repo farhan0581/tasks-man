@@ -10,5 +10,6 @@ urlpatterns = [
     url(r'^signup/$', SignupView.as_view(), name='signup'),
     url(r'^task_list/$', TasksListView.as_view(), name='task_list'),
     url(r'^add/$', TaskAddView.as_view(), name='add'),
+    url(r'^activity/$', ActivityView.as_view(), name='activity'),
 
     ]
