@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from task_app.serializers import TaskSerializer
 from task_app.models import Tasks, UserProfile
@@ -10,18 +10,41 @@ from task_app.forms import *
 from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 
 class TasksListView(APIView):
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(TasksListView, self).dispatch(*args, **kwargs)
+
     def post(self, request):
-        pass
+        data = request.POST
+        delete_list = data.getlist('delete')
+        status_list = data.getlist('status')
+        for elem in delete_list:
+            if elem != '':
+                Tasks.deletetask(elem, request.user)
+
+        for elem in status_list:
+            if elem not in ['', '0']:
+                status, id = elem.split("_")
+                Tasks.updatestatus(id, status, request.user)
+
+        return redirect('task_list')
 
     def get(self, request):
-        queryset = Tasks.getallobjs(request.user)
+        order_by = request.GET.get('order_by')
+        queryset = Tasks.getallobjs(request.user, order_by)
         serializer = TaskSerializer(queryset, many=True)
-        print serializer.data
         return render(request, 'tasks_list.html', {'tasks': serializer.data})
 
+
 class TaskAddView(APIView):
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(TaskAddView, self).dispatch(*args, **kwargs)
+
     def post(self, request):
         form = TaskAddForm(request.POST)
         print form
@@ -36,6 +59,7 @@ class TaskAddView(APIView):
     def get(self, request):
         form = TaskAddForm
         return render(request, 'tasks_add.html', {'form': form})
+
 
 class TasksView(APIView):
     def post(self, request):
@@ -56,6 +80,7 @@ class TasksView(APIView):
         task = Tasks.getobject(id, request.user)
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 class LoginView(APIView):
@@ -89,6 +114,7 @@ class LogoutView(APIView):
         form = UserLoginForm()
         return render(request, 'login.html', {'form': form,
                                               'user': request.user})
+
 
 class SignupView(APIView):
     def post(self, request):

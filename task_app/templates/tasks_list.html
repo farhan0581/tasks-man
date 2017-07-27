@@ -7,7 +7,8 @@
 			<a href="{% url 'add' %}">Add New Task</a>
 		</div>
 	<br>
-
+	<form method="POST" action="{% url 'task_list' %}">
+	{% csrf_token %}
 	<table class="table table-hover">
 		<thead>
 		<tr>
@@ -22,17 +23,20 @@
 		<tbody>	
 	    	<tr>
 		        <td>{{ obj.name }}</td>
-		        <td><select>
-		        	<option>SELECT</option>
-		        	<option value="1" {% if obj.status == 1 %} selected {% endif %}>Complete</option>
-		        	<option value="0" {% if obj.status == 0 %} selected {% endif %}>Incomplete</option>
+		        <td><select name="status">
+		        	<option value="0">SELECT</option>
+		        	<option value="1_{{ obj.id }}" {% if obj.status == 1 %} selected {% endif %}>Complete</option>
+		        	<option value="0_{{ obj.id }}" {% if obj.status == 0 %} selected {% endif %}>Incomplete</option>
 		        </select></td>
 		        <td>{{ obj.added_on }}</td>
 		        <td>{{ obj.complete_by }}</td>
-		        <td><input type="checkbox" name="delete"></td>
+		        <td><input type="checkbox" name="delete" value={{ obj.id }}></td>
 			</tr>
 	    </tbody>    
 		{% endfor %}
 	</table>
+	<br>
+	<input type="submit" name="submit" value="submit" class="btn btn-primary">
+	</form>
 </div>
 {% endblock %}

@@ -6,5 +6,5 @@ class TaskSerializer(serializers.ModelSerializer):
 										 input_formats=["%d %b, %Y",])
 	class Meta:
 		fields = ('name', 'status', 'complete_by',
-				  'added_on', 'deadline', 'user')
+				  'added_on', 'deadline', 'user', 'id')
 		model = Tasks

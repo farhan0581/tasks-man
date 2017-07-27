@@ -22,8 +22,11 @@ class Tasks(models.Model):
 		db_table = 'tasks'
 
 	@classmethod
-	def getallobjs(cls, user):
-		return cls.objects.filter(user=user)
+	def getallobjs(cls, user, order_by):
+		qs = cls.objects.filter(user=user)
+		if order_by:
+			qs = qs.order_by(order_by)
+		return qs
 
 	@classmethod
 	def getobject(cls, id, user):
@@ -34,6 +37,13 @@ class Tasks(models.Model):
 		obj = cls(name=name, deadline=deadline, user=user).save()
 		return obj
 
+	@classmethod
+	def deletetask(cls, id, user):
+		cls.objects.filter(id=id, user=user).delete()
+
+	@classmethod
+	def updatestatus(cls, id, status, user):
+		cls.objects.filter(id=id, user=user).update(status=status)
 
 class Activity(models.Model):
 	user = models.ForeignKey(User, on_delete=models.PROTECT,
