@@ -94,7 +94,7 @@ class Activity(models.Model):
 
 	@classmethod
 	def getobjs(cls, user):
-		qs = cls.objects.filter(user=user)
+		qs = cls.objects.filter(user=user).order_by('-insert_time')
 		return qs
 
 

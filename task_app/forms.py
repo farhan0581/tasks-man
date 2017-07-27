@@ -36,6 +36,9 @@ class TaskAddForm(forms.ModelForm):
     deadline = forms.DateField(label='buy date', input_formats=['%Y-%m-%d'],
                                 widget=DateInput()
                               )
+    complete_by = forms.DateField(label='buy date', required=False, input_formats=['%Y-%m-%d'],
+                                widget=DateInput() 
+                              )
     class Meta:
         model = Tasks
-        fields = ['name', 'deadline']
+        fields = ['name', 'deadline', 'complete_by']

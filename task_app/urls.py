@@ -1,11 +1,12 @@
 from django.conf.urls import url
 from task_app.views import *
+from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
 
-    url(r'^tasks$', TasksView.as_view()),
-    url(r'^tasks/([0-9]*)/$', TasksView.as_view()),
-    url(r'^tasks/([0-9]*)/([0-9]*)/$', TasksView.as_view()),
+    url(r'^tasks$', csrf_exempt(TasksView.as_view())),
+    url(r'^tasks/([0-9]*)/$', csrf_exempt(TasksView.as_view())),
+    url(r'^tasks/([0-9]*)/([0-9]*)/$', csrf_exempt(TasksView.as_view())),
     url(r'^login/$', LoginView.as_view(), name='login'),
     url(r'^logout/$', LogoutView.as_view(), name='logout'),
     url(r'^signup/$', SignupView.as_view(), name='signup'),

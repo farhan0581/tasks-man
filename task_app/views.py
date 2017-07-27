@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from task_app.serializers import TaskSerializer
 from task_app.models import Tasks, UserProfile, Activity
 from rest_framework import status
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.response import Response
 from task_app.forms import *
 from django.http import HttpResponse
@@ -12,6 +13,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+
+    def enforce_csrf(self, request):
+        return  # To not perform the csrf check previously happening
 
 class TasksListView(APIView):
     @method_decorator(login_required)
@@ -60,8 +66,17 @@ class TaskAddView(APIView):
 
 
 class TasksView(APIView):
+
+    authentication_classes = (CsrfExemptSessionAuthentication,
+                              SessionAuthentication)
     def post(self, request):
-        data = TaskSerializer(data=request.POST)
+        formdata = {
+
+            'name': request.POST.get('name'),
+            'deadline': request.POST.get('deadline'),
+            'user': request.user.id
+        }
+        data = TaskSerializer(data=formdata)
         if data.is_valid():
             data.save()
             return Response(data.data, status=status.HTTP_201_CREATED)
@@ -76,9 +91,8 @@ class TasksView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-    def delete(self, request, user_id, id, format=None):
-        if not user_id:
-            user_id = request.user
+    def delete(self, request, id, format=None):
+        user_id = request.user
         task = Tasks.getobject(id, user_id)
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -97,11 +111,11 @@ class LoginView(APIView):
             print user
             if user is not None:
                 login(request, user)
-                return render(request, 'login.html', {'user': user})
+                return redirect('activity')
             else:
                 return HttpResponse('Invalid Credentials!!!')
         else:
-            return HttpResponse('inva')
+            return HttpResponse('ERROR')
 
 
     def get(self, request):
