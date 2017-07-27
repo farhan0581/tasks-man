@@ -22,7 +22,7 @@ class Tasks(models.Model):
 		db_table = 'tasks'
 
 	@classmethod
-	def getallobjs(cls, user, order_by):
+	def getallobjs(cls, user, order_by=None):
 		qs = cls.objects.filter(user=user)
 		if order_by:
 			qs = qs.order_by(order_by)
@@ -79,7 +79,7 @@ class Tasks(models.Model):
 
 class Activity(models.Model):
 	user = models.ForeignKey(User, on_delete=models.PROTECT,
-							 related_name='activity_user')
+							 	   related_name='activity_user')
 	action = models.TextField()
 	insert_time = models.DateTimeField(auto_now=True)
 	task_name = models.TextField(blank=True, null=True)

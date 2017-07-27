@@ -47,13 +47,11 @@ class TaskAddView(APIView):
 
     def post(self, request):
         form = TaskAddForm(request.POST)
-        print form
-        print form.errors
         if form.is_valid():
             name = form.cleaned_data['name']
             deadline = form.cleaned_data['deadline']
             obj = Tasks.addtask(name, deadline, request.user)
-            return render(request, 'tasks_add.html', {'data': obj})
+
         return render(request, 'tasks_add.html', {'form': form})
 
     def get(self, request):
@@ -70,14 +68,18 @@ class TasksView(APIView):
         return Response(data.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-    def get(self, request):
-        queryset = Tasks.getallobjs(request.user)
+    def get(self, request, user_id=None):
+        if not user_id:
+            user_id = request.user
+        queryset = Tasks.getallobjs(user_id)
         serializer = TaskSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-    def delete(self, request, id, format=None):
-        task = Tasks.getobject(id, request.user)
+    def delete(self, request, user_id, id, format=None):
+        if not user_id:
+            user_id = request.user
+        task = Tasks.getobject(id, user_id)
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
