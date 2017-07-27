@@ -33,10 +33,10 @@ class DateInput(forms.DateInput):
 
 class TaskAddForm(forms.ModelForm):
     name = forms.CharField()
-    deadline = forms.DateField(label='buy date', input_formats=['%Y-%m-%d'],
+    deadline = forms.DateField(label='deadline', input_formats=['%Y-%m-%d'],
                                 widget=DateInput()
                               )
-    complete_by = forms.DateField(label='buy date', required=False, input_formats=['%Y-%m-%d'],
+    complete_by = forms.DateField(label='complete by', required=False, input_formats=['%Y-%m-%d'],
                                 widget=DateInput() 
                               )
     class Meta:
