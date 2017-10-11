@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from task_app.serializers import TaskSerializer
 from task_app.models import Tasks, UserProfile, Activity
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.response import Response
 from task_app.forms import *
 from django.http import HttpResponse
@@ -13,6 +13,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from rest_framework.permissions import IsAuthenticated
+from common import CustomAuthentication
+
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
 
@@ -20,9 +23,13 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
         return  # To not perform the csrf check previously happening
 
 class TasksListView(APIView):
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(TasksListView, self).dispatch(*args, **kwargs)
+    # @method_decorator(login_required)
+    # def dispatch(self, *args, **kwargs):
+    #     return super(TasksListView, self).dispatch(*args, **kwargs)
+
+    authentication_classes = (
+                              CustomAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         data = request.POST
@@ -40,6 +47,7 @@ class TasksListView(APIView):
         return redirect('task_list')
 
     def get(self, request):
+        print request.META
         order_by = request.GET.get('order_by')
         queryset = Tasks.getallobjs(request.user, order_by)
         serializer = TaskSerializer(queryset, many=True)
@@ -68,7 +76,12 @@ class TaskAddView(APIView):
 class TasksView(APIView):
 
     authentication_classes = (CsrfExemptSessionAuthentication,
-                              SessionAuthentication)
+                              TokenAuthentication)
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(TaskAddView, self).dispatch(*args, **kwargs)
+
     def post(self, request):
         formdata = {
 
@@ -135,6 +148,8 @@ class LogoutView(APIView):
 class SignupView(APIView):
     def post(self, request):
         form = UserProfileForm(request.POST)
+        print form
+        print form.is_valid()
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
@@ -149,6 +164,8 @@ class SignupView(APIView):
                     return render(request, 'signup.html', {'user': user})
             else:
                 return HttpResponse('Error')
+        else:
+            return HttpResponse('Form Invalid')
 
     def get(self, request):
         form = UserProfileForm()

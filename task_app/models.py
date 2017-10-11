@@ -4,6 +4,18 @@ from __future__ import unicode_literals
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
+
+class CustomTokenModel(Token):
+	expiry = models.DateTimeField(blank=True, null=True)
+	is_active = models.IntegerField(default=1)
+
+	class Meta:
+		db_table = 'custom_token_model'
+
 
 class Tasks(models.Model):
 	TASK_STATUS = (
@@ -105,3 +117,13 @@ class UserProfile(models.Model):
 
 	class Meta:
 		db_table = 'user_profile'
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+    	import datetime
+    	expiry_dt = datetime.datetime.now() + datetime.timedelta(days=10)
+        CustomTokenModel.objects.create(user=instance,
+        					is_active=1,
+        					expiry=expiry_dt)

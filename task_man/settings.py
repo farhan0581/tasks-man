@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'task_app',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -55,6 +56,17 @@ MIDDLEWARE = [
 REST_FRAMEWORK = {
     'DATETIME_FORMAT': "%d %b, %Y",
 }
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework.authentication.BasicAuthentication',
+#         'rest_framework.authentication.SessionAuthentication',
+#         'rest_framework.authentication.TokenAuthentication',
+#     ),
+#     'DEFAULT_PERMISSION_CLASSES': (
+#         'rest_framework.permissions.IsAuthenticated'
+#     ),
+# }
 
 ROOT_URLCONF = 'task_man.urls'
 
